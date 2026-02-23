@@ -386,4 +386,190 @@ Open browser:
 ![IMG](screenshoot/sparta-app-running.png)
 
 Sparta app running successfully!!!
+##
+##
 
+# 11 CI/CD Integration with Jenkins
+### 11.1 Architecture Overview
+```cpp
+http://EC2_PUBLIC_IP:30007
+```
+we now integrate Kubernetes deployment into Jenkins.
+
+```text
+GitHub → Jenkins
+         ↓
+   Build Docker Image
+         ↓
+   Push to Docker Hub
+         ↓
+   SSH into EC2
+         ↓
+   kubectl set image
+         ↓
+   Rolling Update
+```
+### 11.2 Create New GitHub Repository
+To avoid modifying the previous Docker-based project:
+
+1. Create a new repository:
+```
+sparta-project-1
+```
+2. Clone or copy the application into a new directory 
+```bash
+mkdir sparta-project-1
+cd ssparta-project-1
+```
+
+3. Push project to `GitHub`:
+```bash
+git init
+git add .
+git commit -m "Initial Kubernetes migration"
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/sparta-jenkins-kubernetes.git
+git push -u origin main
+```
+![img](screenshoot/gtihub-new-rep.png)
+
+### 11.3 Configure SSH Access to EC2
+
+Jenkins must connect securely to EC2.
+
+### Step 1 — Verify Manual SSH
+
+From local machine:
+```bash
+ssh -i ~/.ssh/your-key.pem ubuntu@EC2_PUBLIC_IP
+```
+
+If access is denied:
+```bash
+chmod 400 ~/.ssh/your-key.pem
+```
+
+Retry connection.
+![img](screenshoot/double-check-ssh-key.png)
+
+##
+### 11.4 Add SSH Key to Jenkins
+
+Inside Jenkins:
+```sql
+Manage Jenkins → Credentials → Global → Add Credentials
+```
+
+Choose:
+
+- Kind: **SSH Username with private key**
+
+- Username: `ubuntu`
+
+- Private Key: Paste contents of `.pem` file
+
+- ID: `ec2-ssh-key`
+
+Save.
+
+NOTE: DO NOT EXPOSE YOUR KEY 
+
+![img](screenshoot/ssh-key.png)
+
+##
+### 11.5 Create Multibranch Pipeline
+
+In Jenkins:
+
+1. Click **New Item**
+
+Name:
+```
+sparta-project-1
+```
+
+3. Select:
+```nginx
+Multibranch Pipeline
+```
+
+4. Configure:
+
+    - GitHub repository URL
+
+    - Credentials (GitHub access token)
+
+5. **Save**
+
+Jenkins will automatically scan branches.
+
+![img](screenshoot/localhost_8080_view_all_job_sparta-project-1_configure.png)
+
+##
+### 11.6 Final Jenkinsfile
+
+The Jenkinsfile includes:
+
+- Docker build
+
+- Docker push
+
+- Kubernetes rolling update
+
+```groovy
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "jrodga1604/sparta-app"
+        EC2_HOST = "EC2_PUBLIC_IP"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                dir('app') {
+                    sh """
+                        docker buildx create --use --name multi-builder || true
+                        docker buildx build \
+                          --platform linux/amd64 \
+                          -t ${IMAGE_NAME}:${BUILD_NUMBER} \
+                          -t ${IMAGE_NAME}:latest \
+                          --push .
+                    """
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            when {
+                branch 'main'
+            }
+            steps {
+                sshagent(['ec2-ssh-key']) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} '
+                        sudo kubectl -n sparta set image deployment/sparta-app \
+                        sparta-app=${IMAGE_NAME}:${BUILD_NUMBER}
+                    '
+                    """
+                }
+            }
+        }
+    }
+}
+```
+
+Replace:
+```nginx
+EC2_PUBLIC_IP
+```
+
+with your actual IP.
