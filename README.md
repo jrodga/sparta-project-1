@@ -265,6 +265,96 @@ sudo kubectl -n sparta get pods
 ![img](screenshoot/mongo-pod-running.png)
 
 ##
+### 7.6 Database Initialization (Seeding Strategy)
+
+### Problem
+
+During Docker-based deployment, database seeding was executed during `npm install` using:
+```bash
+node seeds/seed.js
+```
+
+However, in Kubernetes:
+
+- The Docker image is built before MongoDB exists
+
+- The runtime MongoDB inside the cluster starts later
+
+- Therefore, initial seed data is not inserted automatically
+
+### Solution
+
+A Kubernetes Job was created to:
+
+- Run the seed script once
+
+- Wait until MongoDB is available
+
+- Avoid re-seeding on every deployment
+
+This ensures:
+
+- Database is populated automatically on first deployment
+
+- Data remains persistent across redeployments
+
+- No data is overwritten
+
+### Idempotent Seed Script
+
+The seed script was modified to:
+
+- Check if posts already exist
+
+- Insert data only if the collection is empty
+
+This prevents overwriting data on future executions.
+
+### Kubernetes Seed Job
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongo-seed
+  namespace: sparta
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      initContainers:
+        - name: wait-for-mongo
+          image: busybox:1.36
+          command: ["sh", "-c", "until nc -z mongo 27017; do sleep 2; done"]
+      containers:
+        - name: seed
+          image: jrodga1604/sparta-app:latest
+          command: ["node", "seeds/seed.js"]
+          env:
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: sparta-app-secret
+                  key: MONGO_URI
+```
+### Execution
+
+The job was applied once:
+```bash
+kubectl apply -f mongo-seed-job.yaml
+```
+
+After completion:
+```bash
+kubectl get jobs -n sparta
+```
+
+Status:
+```
+mongo-seed   1/1   Completed
+```
+
+
 # 8. Deploy Sparta Application
 ### 8.1 Create Application Secret
 
@@ -318,7 +408,8 @@ spec:
           ports:
             - containerPort: 3000
           env:
-            - name: MONGO_URI
+            - name: DB_HOST
+
               valueFrom:
                 secretKeyRef:
                   name: sparta-app-secret
@@ -344,7 +435,7 @@ spec:
             periodSeconds: 5
 
 ```
-![img](screenshoot/sparta-deployment.png)
+![img](screenshoot/nano-sparta-deployment.png)
 
 Apply:
 ```bash
