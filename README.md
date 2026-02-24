@@ -44,15 +44,15 @@ MongoDB is deployed inside the cluster using:
 ## 2. Final Architecture
 
 ```text
-Jenkins -> Docker Hub -> EC2 (k3s)
-                          |
-            +-------------+-------------+
-            |                           |
-     Sparta Deployment (2 Pods)     Mongo StatefulSet (1 Pod)
-            |                           |
-     NodePort Service (30007)      ClusterIP Service
-                                        |
-                               PersistentVolumeClaim
+Developer -> GitHub -> Jenkins -> Docker Hub -> EC2 (k3s)
+                                              |
+                                +-------------+-------------+
+                                |                           |
+                         Sparta Deployment (2 Pods)     Mongo StatefulSet (1 Pod)
+                                |                           |
+                         NodePort Service (30007)      ClusterIP Service
+                                                            |
+                                                   PersistentVolumeClaim
 ```
 
 ## 3. Prerequisites
@@ -945,3 +945,14 @@ Suggested migration path:
 3. Export/import existing MongoDB data.
 4. Run application tests and verify read/write behavior.
 5. Remove the in-cluster MongoDB StatefulSet after validation.
+
+### Additional Future Improvement: EC2 IP Management for Jenkins
+
+Currently, the Jenkins pipeline uses a fixed EC2 public IP (`EC2_HOST`) for SSH deployment.
+
+Future improvement options:
+
+- Use an **Elastic IP** so the deployment target address remains stable.
+- Use **AWS CLI + IAM permissions** in Jenkins to fetch the EC2 IP dynamically by instance tag.
+
+This would reduce manual updates in the `Jenkinsfile` if the EC2 instance is replaced or its public IP changes.
