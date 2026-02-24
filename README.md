@@ -873,3 +873,7 @@ Future improvement options:
 - Use **AWS CLI + IAM permissions** in Jenkins to fetch the EC2 IP dynamically by instance tag.
 
 This would reduce manual updates in the `Jenkinsfile` if the EC2 instance is replaced or its public IP changes.
+
+
+
+
