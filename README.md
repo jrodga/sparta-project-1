@@ -37,9 +37,7 @@ MongoDB is deployed inside the cluster using:
 - [15. Blockers and Resolutions](#15-blockers-and-resolutions)
 - [16. What I Learned](#16-what-i-learned)
 - [17. Benefits I Saw Personally](#17-benefits-i-saw-personally)
-- [18. Project Management Board (Suggested Layout)](#18-project-management-board-suggested-layout)
-- [19. Deliverables Checklist](#19-deliverables-checklist)
-- [20. Next Steps (Amazon DocumentDB)](#20-next-steps-amazon-documentdb)
+- [18. Next Steps (Amazon DocumentDB)](#18-next-steps-amazon-documentdb)
 
 ## 2. Final Architecture
 
@@ -841,88 +839,7 @@ The database seed script worked in the Docker-based setup but not automatically 
 - Practical experience connecting multiple tools together (GitHub, Jenkins, Docker Hub, EC2, Kubernetes).
 - Improved troubleshooting skills, especially for platform/architecture issues and deployment timing problems.
 
-## 18. Project Management Board (Suggested Layout)
-
-The project brief requires a project board (Trello, Jira, or GitHub Projects). If you do not have Trello yet, you can quickly create a strong board using this structure.
-
-### Recommended Board Columns
-
-1. `Backlog`
-2. `To Do`
-3. `In Progress`
-4. `Blocked`
-5. `Review / Testing`
-6. `Done`
-
-### Suggested Cards
-
-- Set up EC2 instance and security group
-- Install Docker / K3s on EC2
-- Deploy MongoDB in Kubernetes (Secret, PVC, Service, StatefulSet)
-- Create Sparta app Kubernetes deployment and service
-- Verify app connectivity from browser
-- Create Jenkins multibranch pipeline
-- Configure Jenkins credentials (Docker Hub + EC2 SSH)
-- Build and push Docker image from Jenkins
-- Deploy new image to Kubernetes via Jenkins
-- Create seed job for MongoDB data
-- Write README documentation
-- Create architecture diagram
-- Create CI/CD pipeline diagram
-- Record 5-minute demo video
-- Export README to PDF
-- Submit repo link and documentation package
-
-### Example Card Format (Looks Clean in Trello/GitHub Projects)
-
-Use this template for each card:
-
-- **Title:** Short action-based task name
-- **Description:** Goal, acceptance criteria, notes
-- **Checklist:** Small technical steps
-- **Labels:** `infra`, `jenkins`, `docker`, `k8s`, `docs`, `blocked`
-- **Attachments:** Screenshots / links / PRs
-
-Example:
-
-```text
-Title: Deploy app to Kubernetes
-Description: Create Deployment and Service for Sparta app and verify browser access
-Checklist:
-- Create sparta-deployment.yaml
-- Create sparta-service.yaml
-- kubectl apply both files
-- Verify pods and svc
-- Test http://EC2_PUBLIC_IP:30007
-Labels: k8s, app
-```
-
-### Optional (GitHub Projects instead of Trello)
-
-If you prefer not to create Trello, GitHub Projects is fully acceptable for this brief and keeps planning inside the repo ecosystem.
-
-## 19. Deliverables Checklist
-
-### 1. Video (5 minutes, non-technical audience)
-
-Include:
-
-- Project board and how the work was managed
-- Overview of the components (Jenkins, Docker, Kubernetes, cloud VM)
-- Demonstration of the working CI/CD pipeline and deployed app
-- What you learned from the project
-
-### 2. Documentation Package
-
-- PDF copy of this README
-- Link/invitation to the project repository
-
-### 3. End of Project Feedback Form
-
-- Complete the form after submitting deliverables
-- Link provided in the brief: `https://forms.office.com/e/M5QdiKKrK4`
-
-## 20. Next Steps (Amazon DocumentDB)
+## 18. Next Steps (Amazon DocumentDB)
 
 The next step is to move the database from in-cluster MongoDB to **Amazon DocumentDB** (MongoDB-compatible).
 
