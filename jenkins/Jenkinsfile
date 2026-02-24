@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "jrodga1604/sparta-app"
-        EC2_HOST = "3.252.40.158"
+        EC2_HOST = "54.229.62.115"
     }
 
     stages {
